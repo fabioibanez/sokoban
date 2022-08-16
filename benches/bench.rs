@@ -6,10 +6,12 @@ extern crate test;
 mod bench_tests {
     use rand::seq::SliceRandom;
     use rand::{self, Rng};
+    use sokoban::binary_heap::Heap;
     use sokoban::node_allocator::FromSlice;
     use sokoban::node_allocator::NodeAllocatorMap;
     use sokoban::*;
     use std::collections::BTreeMap;
+    use std::collections::BinaryHeap;
     use std::collections::HashMap;
     use test::Bencher;
 
@@ -21,6 +23,7 @@ mod bench_tests {
     type SHashMap = HashTable<u128, u128, NUM_BUCKETS, MAX_SIZE>;
     type AVLTreeMap = AVLTree<u128, u128, MAX_SIZE>;
     type CritbitTree = Critbit<u128, NUM_NODES, MAX_SIZE>;
+    type SokobanHeap = Heap<u128, u128, MAX_SIZE>;
 
     const NUM_BUCKETS_1K: usize = 1000;
     const NUM_NODES_1K: usize = (1001 << 1) + 1;
@@ -29,6 +32,7 @@ mod bench_tests {
     type SHashMap1K = HashTable<u128, u128, NUM_BUCKETS_1K, 2001>;
     type AVLTreeMap1K = AVLTree<u128, u128, 1001>;
     type CritbitTree1K = Critbit<u128, NUM_NODES_1K, 1001>;
+    type SokobanHeap1K = Heap<u128, u128, 1001>;
 
     #[bench]
     fn bench_std_btree_map_insert_1000_u128(b: &mut Bencher) {
@@ -266,6 +270,87 @@ mod bench_tests {
             }
             for k in slice.iter() {
                 m.remove(k);
+            }
+        })
+    }
+
+    // Standard benchmark tests !
+    #[bench]
+    fn bench_std_binary_heap_remove_1000_u128(b: &mut Bencher) {
+        let mut rng = rand::thread_rng();
+        let mut heap = BinaryHeap::<u128>::default();
+        let mut slice: Vec<u128> = (0..1000).collect();
+        slice.shuffle(&mut rng);
+        b.iter(|| {
+            for v in 0..1000 {
+                heap.push(rng.gen::<u128>());
+            }
+            for k in slice.iter() {
+                heap.pop();
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_std_binary_heap_insert_1000_u128(b: &mut Bencher) {
+        let mut rng = rand::thread_rng();
+        let mut heap = BinaryHeap::<u128>::default();
+        b.iter(|| {
+            for v in 0..1000 {
+                heap.push(rng.gen::<u128>());
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_std_binary_heap_insert_20000_u128(b: &mut Bencher) {
+        let mut rng = rand::thread_rng();
+        let mut heap = BinaryHeap::<u128>::default();
+        b.iter(|| {
+            for v in 0..20000 {
+                heap.push(rng.gen::<u128>());
+            }
+        })
+    }
+
+    // Sokoban heap tests!
+    #[bench]
+    fn bench_sokoban_binary_heap_remove_1000_u128(b: &mut Bencher) {
+        let mut rng = rand::thread_rng();
+        let mut sokoban_heap = Heap::<u128, u128, 1001>::default();
+        let mut slice: Vec<u128> = (0..1000).collect();
+
+        b.iter(|| {
+            for v in 0..1000 {
+                sokoban_heap._push(rng.gen::<u128>());
+            }
+            for k in slice.iter() {
+                sokoban_heap._pop();
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_sokoban_binary_heap_insert_20000_u128(b: &mut Bencher) {
+        let mut rng = rand::thread_rng();
+        let mut sokoban_heap = Heap::<u128, u128, MAX_SIZE>::default();
+
+        b.iter(|| {
+            for v in 0..1000 {
+                sokoban_heap._push(rng.gen::<u128>());
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_sokoban_binary_heap_insert_1000_u128(b: &mut Bencher) {
+        let mut rng = rand::thread_rng();
+        let mut sokoban_heap = Heap::<u128, u128, 1001>::default();
+        let mut slice: Vec<u128> = (0..1000).collect();
+
+        b.iter(|| {
+            for v in 0..1000 {
+                sokoban_heap._push(rng.gen::<u128>());
             }
         })
     }
